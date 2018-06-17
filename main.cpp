@@ -316,7 +316,7 @@ std::map<DegreeList,int> SplitDegree(Polynomial<prime::IntType, int> const& f,in
                 a.back()+=partDegree/deg;
             }
         }
-        if(out.count(a)) ++out[a]; else out[a] = 0;
+        if(out.count(a)) out[a]+=1; else out[a] = 0;
     }
     int id = out[std::vector<int>{f.degree()}];
     for(auto &e: out) e.second=round((double)e.second/id);
@@ -353,6 +353,49 @@ void testFraction(){
 
 }
 
+struct SubS5{
+    std::string name;
+    int order;
+    std::map<DegreeList,int> cycle;
+};
+
+std::vector<SubS5> loader(){
+    using namespace std;
+    fstream fin("CycleType.import",ios::in);
+    vector<SubS5> out;
+    while(1){
+        SubS5 tmp;
+        string op; fin>>op;
+        if(op==".") break;
+        do{
+            if(op=="."){
+                out.push_back(tmp);
+                break;
+            }
+            if(op=="name") fin>>tmp.name;
+            else if(op=="order") fin>>tmp.order;
+            else if(op=="cycle"){
+                int accum = 0;
+                while(accum<tmp.order){
+                    int cnt; fin>>cnt;
+                    accum += cnt;
+                    DegreeList dlist;
+                    for(int deg=0, i=1;deg<5;++i){
+                        int val;
+                        fin>>val;
+                        deg+=val*i;
+                        dlist.push_back(val);
+                    }
+                    tmp.cycle[dlist] = cnt;
+                }
+            }
+            op.clear(); fin>>op;
+        }while(1);
+    }
+    fin.close();
+    return out;
+}
+
 int main(){
     using namespace std;
     using namespace prime;
@@ -369,9 +412,52 @@ int main(){
 
     std::cout << fint <<"\n";
 
-    auto table = SplitDegree(fint,1000);
+    auto table = SplitDegree(fint,20000);
     for(auto e: table)
         cout<<e.first<<": "<<e.second<<"\n";
+
+    int order = 0;
+    for(auto &e: table) order += e.second;
+    std::cout<<"Order: "<<order<<"\n";
+    auto subS5List = loader();
+    queue<int> orderMatch;
+    int best = INT_MAX;
+    for(int i=0;i<subS5List.size();++i){
+        int dist = abs(order-subS5List[i].order);
+        if(dist<best){
+            while(orderMatch.size())
+                orderMatch.pop();
+            orderMatch.push(i);
+            best = dist;
+        } else if(dist==best){
+            orderMatch.push(i);
+        }
+    }
+    if(orderMatch.size()==1){
+        std::cout<<subS5List[orderMatch.front()].name<<"\n";
+    } else if(orderMatch.size()>1){
+        auto mapDist = [](
+            map<DegreeList,int> l,
+            map<DegreeList,int>const& r)->int{
+
+            for(auto &e: r){
+                if(l.count(e.first))
+                    l[e.first]-=e.second;
+                else l[e.first] = e.second;
+            }
+            int out = 0;
+            for(auto &e: l) out+=abs(e.second);
+            return out;
+        };
+        int best = INT_MAX;
+        int bestIdx=-1;
+        for(;orderMatch.size();orderMatch.pop()){
+            int idx = orderMatch.front();
+            int dist = mapDist(table,subS5List[idx].cycle);
+            if(dist<best) best = dist, bestIdx = idx;
+        }
+        std::cout<<subS5List[bestIdx].name<<"\n";
+    } else puts("Unknown");
 
     //testMod();
     //testFraction();
