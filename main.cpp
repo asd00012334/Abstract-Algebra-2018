@@ -1,9 +1,9 @@
 #include<bits/stdc++.h>
 #include "prime.hpp"
+#include "quotient.hpp"
 
 template<typename, typename> struct Polynomial;
-template<typename, typename, typename=void> struct PolynomialSpecialized;
-template<> struct PolynomialSpecialized<prime::Zp,prime::ZpElement>;
+template<typename, typename> struct PolynomialSpecialized;
 template<typename> struct DetectDiv;
 template<typename ring, typename ringElement, bool Enabled=DetectDiv<ringElement>::value>
 struct DivisionSpecialized;
@@ -75,11 +75,12 @@ struct Polynomial:
     Polynomial operator*(Polynomial const& p2)const{
         Polynomial out;
         out.canonicalType.scalar = canonicalType.scalar;
-
         out.coef.resize(coef.size()+p2.coef.size()-1,canonicalType.scalar->__zero__());
         for(int i=0;i<coef.size();++i)
-        for(int j=0;j<p2.coef.size();++j)
+        for(int j=0;j<p2.coef.size();++j){
+            assert(i+j<out.coef.size());
             out.coef[i+j] = out.coef[i+j] + coef[i] * p2.coef[j];
+        }
         out.reduce();
         return out;
     }
@@ -124,7 +125,7 @@ struct Polynomial:
     }
 
     void reduce(){
-        while(coef.size()&&coef.back()==canonicalType.scalar->__zero__())
+        while(coef.size()>1&&coef.back()==canonicalType.scalar->__zero__())
             coef.pop_back();
     }
 
@@ -136,12 +137,12 @@ struct PolynomialSpecialized<prime::IntType,int>{
 };
 
 template<>
-struct PolynomialSpecialized<prime::Zp,prime::ZpElement>{
-    Polynomial<prime::Zp,prime::ZpElement>
-    operator%(Polynomial<prime::Zp,prime::ZpElement> p2)const;
+struct PolynomialSpecialized<quotient::FracType,quotient::fraction>{
+    Polynomial<quotient::FracType,quotient::fraction> diff()const;
+    Polynomial<prime::IntType,int> toIntCoef()const;
 };
 
-template<typename ring, typename ringElement, typename Enabled>
+template<typename ring, typename ringElement>
 struct PolynomialSpecialized{};
 
 template<typename ring, typename ringElement, bool Enabled>
@@ -158,6 +159,26 @@ struct DetectDiv{
 
 template<typename ring, typename ringElement>
 struct DivisionSpecialized<ring,ringElement, true>{
+    Polynomial<ring,ringElement> operator%(Polynomial<ring,ringElement> p2)const{
+        Polynomial<ring,ringElement> out;
+        auto This = static_cast<Polynomial<ring,ringElement>const*>(this);
+        out.canonicalType.scalar = This->canonicalType.scalar;
+        out.coef = This->coef;
+
+        /// Reduce to monic polynomial
+        out.reduce();
+        for(int i=0;i<p2.coef.size();++i)
+            p2.coef[i] = p2.coef[i]/p2.coef.back();
+
+        for(int i=out.coef.size()-1;i>=(int)p2.coef.size()-1;--i){
+            auto tmp = out.coef[i];
+            for(int j=0;j<p2.coef.size();++j)
+                out.coef[i-j] = out.coef[i-j] - p2.coef.rbegin()[j] * tmp;
+        }
+        out.reduce();
+        return out;
+    }
+
     Polynomial<ring,ringElement> operator/(Polynomial<ring,ringElement> p2)const{
         /// ?
         Polynomial<ring, ringElement> out, res;
@@ -201,29 +222,36 @@ PolynomialSpecialized<prime::IntType,int>::operator%(prime::Zp const& zp)const{
 }
 
 
-
-Polynomial<prime::Zp,prime::ZpElement>
-PolynomialSpecialized<prime::Zp,prime::ZpElement>::
-    operator%(Polynomial<prime::Zp,prime::ZpElement> p2)const{
-
-    Polynomial<prime::Zp,prime::ZpElement> out;
-    auto This = static_cast<Polynomial<prime::Zp,prime::ZpElement>const*>(this);
+Polynomial<quotient::FracType,quotient::fraction>
+PolynomialSpecialized<quotient::FracType,quotient::fraction>::diff()const{
+    Polynomial<quotient::FracType,quotient::fraction> out;
+    auto This = static_cast<Polynomial<quotient::FracType,quotient::fraction>const*>(this);
     out.canonicalType.scalar = This->canonicalType.scalar;
-    out.coef = This->coef;
-
-    /// Reduce to monic polynomial
+    out.coef.resize(This->coef.size()-1,0);
+    for(int i=This->coef.size()-1;i>0;--i)
+        out.coef[i-1] = This->coef[i]*i;
     out.reduce();
-    for(int i=0;i<p2.coef.size();++i)
-        p2.coef[i] = p2.coef[i]/p2.coef.back();
+    return out;
+}
 
-    for(int i=out.coef.size()-1;i>=(int)p2.coef.size()-1;--i){
-        auto tmp = out.coef[i];
-        for(int j=0;j<p2.coef.size();++j)
-            out.coef[i-j] = out.coef[i-j] - p2.coef.rbegin()[j] * tmp;
+Polynomial<prime::IntType,int>
+PolynomialSpecialized<quotient::FracType,quotient::fraction>::toIntCoef()const{
+    auto This = static_cast<Polynomial<quotient::FracType,quotient::fraction>const*>(this);
+    Polynomial<prime::IntType,int> out;
+    out.canonicalType.scalar = &prime::intType;
+    out.coef.resize(This->coef.size(),0 );
+
+    auto lcm = [](long long l, long long r)->long long{
+        return l*r/std::__gcd(l,r);
+    };
+    long long multi=1;
+    for(int i=0;i<This->coef.size();++i)
+        multi = lcm(multi,This->coef[i].dn);
+    for(int i=0;i<out.coef.size();++i){
+        out.coef[i] = This->coef[i].en*multi/This->coef[i].dn;
     }
     out.reduce();
     return out;
-
 }
 
 struct DegreeList: public std::vector<int>{
@@ -233,7 +261,7 @@ struct DegreeList: public std::vector<int>{
             if(i&&i<x.size()) out<<", ";
             out<<x[i];
         }
-        out<<"]";
+        out<<" ]";
         return out;
     }
 
@@ -314,19 +342,40 @@ void testMod(){
 
 }
 
+void testFraction(){
+    using namespace std;
+    using namespace quotient;
+    Polynomial<FracType,fraction> pfrac1, pfrac2;
+    pfrac1.canonicalType.scalar = &fracType;
+    pfrac2.canonicalType.scalar = &fracType;
+    cin>>pfrac1;
+    cout<<prime::gcd(pfrac1.diff(),pfrac1)<<"\n";
+
+}
+
 int main(){
     using namespace std;
     using namespace prime;
 
     buildPrimeList();
-    Polynomial<IntType,int> f;
-    f.canonicalType.scalar = &intType;
-    cin>>f;
-    auto table = SplitDegree(f,1000);
+    Polynomial<IntType,int> fint;
+    Polynomial<quotient::FracType,quotient::fraction> fq;
+    fint.canonicalType.scalar = &intType;
+    fq.canonicalType.scalar = &quotient::fracType;
+
+    cin>>fq;
+    fq = fq / gcd(fq.diff(),fq);
+    fint = fq.toIntCoef();
+
+    std::cout << fint <<"\n";
+
+    auto table = SplitDegree(fint,1000);
     for(auto e: table)
         cout<<e.first<<": "<<e.second<<"\n";
 
     //testMod();
+    //testFraction();
+
 
     return 0;
 }
