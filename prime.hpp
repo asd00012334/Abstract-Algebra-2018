@@ -51,6 +51,23 @@ type modulusInverse(type input, type mod){
     return p.first;
 }
 
+
+template<typename ringElement>
+inline ringElement powerMod(ringElement base, ll expo, ringElement const& m){
+    ringElement out = base.canonicalType.__unit__() % m;
+    for(;expo;expo>>=1, base = base*base%m){
+        if(expo&1) out = out * base % m;
+    }
+    return out;
+}
+
+template<typename ringElement>
+inline ringElement gcd(ringElement const& l, ringElement const& r){
+    if(l == l.r->__zero__()) return r;
+    return gcd(r%l,l);
+}
+
+
 struct Zp;
 struct ZpElement;
 
@@ -62,8 +79,10 @@ struct Zp: public Field<Zp,ZpElement>{
     ZpElement __mul__(ZpElement const& l, ZpElement const& r)const;
     ZpElement __inv__(ZpElement const& e)const;
     ZpElement __div__(ZpElement const& l, ZpElement const& r)const;
+    bool __equal__(ZpElement const& l, ZpElement const& r)const;
     ZpElement __zero__()const;
     ZpElement __unit__()const;
+    friend std::ostream& operator<<(std::ostream& out, ZpElement const& x);
 };
 
 struct ZpElement: public FieldElement<Zp,ZpElement>{
@@ -87,6 +106,9 @@ ZpElement Zp::__inv__(ZpElement const& e)const{
 ZpElement Zp::__div__(ZpElement const& l, ZpElement const& r)const{
     return __mul__(l, r.inv());
 }
+bool Zp::__equal__(ZpElement const& l, ZpElement const& r)const{
+    return (l.v-r.v)%p == 0;
+}
 
 ZpElement Zp::__zero__()const{
     return ZpElement(this,0);
@@ -99,10 +121,14 @@ ZpElement::ZpElement(Zp const* zp, ll v):
     FieldElement<Zp,ZpElement>(zp),
     v( ((v % zp->p) + zp->p) % zp->p ){}
 
+std::ostream& operator<<(std::ostream& out, ZpElement const& x){
+    return out<<x.v;
+}
+
 struct IntType{
     int __zero__()const{ return 0;}
     int __unit__()const{ return 1;}
-};
+}intType;
 
 }
 
