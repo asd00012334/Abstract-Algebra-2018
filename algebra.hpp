@@ -17,6 +17,9 @@ struct Ring{
     ringElement __mul__(ringElement const& l, ringElement const& r)const{
         return static_cast<ring const*>(this)->__mul__(l, r);
     }
+    bool __equal__(ringElement const& l, ringElement const& r)const{
+        return static_cast<ring const*>(this)->__equal__(l, r);
+    }
 };
 
 template<typename field, typename fieldElement>
@@ -47,6 +50,10 @@ struct RingElement{
     ringElement operator*(ringElement const& e2)const{
         if(r != e2.r) throw std::exception();
         return r->__mul__((ringElement const&)*this, e2);
+    }
+    bool operator==(ringElement const& e2)const{
+        if(r != e2.r) throw std::exception();
+        return r->__equal__((ringElement const&)*this, e2);
     }
 };
 
