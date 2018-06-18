@@ -34,4 +34,4 @@ std::cin>>f;
     - For instance [2, 0, 1] -> 3 represents Galois group with 3 elements of (1 2 3)(4)(5) cycles.
 
 - Next, the `loader()` load information of S5 subgroup from CycleType.import
-- Final, define the information distance between group statistics, compare order and cycle structure and decide the closest one as the final choice.
+- Finally, define the information distance between group statistics, compare order and cycle structure and decide the closest one as the final choice.
