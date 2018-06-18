@@ -1,5 +1,6 @@
 # Abstract-Algebra-2018
 The final project of course Abstract Algebra in 2018.
+Goal: to find Galois group of splitting field of a quintic polynomial over Q.
 
 ## Component
 
@@ -29,7 +30,7 @@ f.canonicalType.scalar = &intType;
 std::cin>>f;
 ```
 - After differentiation, use `SplitDegree(f, iteration)` with specified iteration number, it will return a `std::map<DegreeList,int>` type lookup table that represents number of different cycle structure
-    - For instance [2, 0, 1] -> 3 represents Galois group with 3 $(1 2 3)(4)(5)$ cycles.
+    - For instance [2, 0, 1] -> 3 represents Galois group with 3 elements of (1 2 3)(4)(5) cycles.
 
 - Next, the `loader()` load information of S5 subgroup from CycleType.import
 - Final, define the information distance between group statistics, compare order and cycle structure and decide the closest one as the final choice.
