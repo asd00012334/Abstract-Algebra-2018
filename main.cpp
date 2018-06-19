@@ -244,11 +244,14 @@ PolynomialSpecialized<quotient::FracType,quotient::fraction>::toIntCoef()const{
     auto lcm = [](long long l, long long r)->long long{
         return l*r/std::__gcd(l,r);
     };
-    long long multi=1;
-    for(int i=0;i<This->coef.size();++i)
+    long long multi=1, g=0;
+    for(int i=0;i<This->coef.size();++i){
+        if(This->coef[i].en == 0) continue;
+        g = std::__gcd(g, This->coef[i].en);
         multi = lcm(multi,This->coef[i].dn);
+    }
     for(int i=0;i<out.coef.size();++i){
-        out.coef[i] = This->coef[i].en*multi/This->coef[i].dn;
+        out.coef[i] = (This->coef[i].en/g)*(multi/This->coef[i].dn);
     }
     out.reduce();
     return out;
@@ -408,8 +411,8 @@ int main(){
 
     cin>>fq;
     fq = fq / gcd(fq.diff(),fq);
+    fq.reduce();
     fint = fq.toIntCoef();
-
     std::cout << fint <<"\n";
 
     auto table = SplitDegree(fint,20000);
