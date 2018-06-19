@@ -49,6 +49,7 @@ std::cin>>f;
 
 ### Result and Conclusion
 Below shows result of x^5+2x+6, for more testing result please refer to [test.out](https://github.com/asd00012334/Abstract-Algebra-2018/blob/master/test.out)
+```
 > 1 0 0 0 2 6, exp: S5
 1 x^5 + 0 x^4 + 0 x^3 + 0 x^2 + 2 x + 6
 [ 5 ]: 1
@@ -60,5 +61,5 @@ Below shows result of x^5+2x+6, for more testing result please refer to [test.ou
 [ 3, 1 ]: 10
 Order: 117
 S5
-
+```
 There is slight error in the result, after classification the result is as expected (S5). We use 20000 as iteration number of p. Time consumption ranges from ten to tens of seconds.
