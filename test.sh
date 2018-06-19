@@ -8,7 +8,7 @@ echo '' >> test.out
 echo '> 1 0 0 0 -2, exp: D4' >> test.out
 echo '1 0 0 0 -2' | ./main >> test.out
 echo '' >> test.out
-echo '1 0 0 -2, exp: S3' >> test.out
+echo '>1 0 0 -2, exp: S3' >> test.out
 echo '1 0 0 -2' | ./main >> test.out
 echo '' >> test.out
 echo '> 1 0 2 0 2, exp: D4' >> test.out
