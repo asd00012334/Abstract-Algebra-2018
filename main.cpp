@@ -293,7 +293,10 @@ struct DegreeList: public std::vector<int>{
 std::map<DegreeList,int> SplitDegree(Polynomial<prime::IntType, int> const& f,int N){
     using namespace std;
     using namespace prime;
-    std::map<DegreeList, int> out;
+	
+	if(f.degree()==0) throw std::exception();
+    
+	std::map<DegreeList, int> out;
     IntType intType;
     Polynomial<prime::IntType, int> x(&intType,vector<int>{0,1});
     for(int i=0;i<N;++i){
@@ -302,13 +305,13 @@ std::map<DegreeList,int> SplitDegree(Polynomial<prime::IntType, int> const& f,in
         Polynomial<Zp,ZpElement> g = f % zp, xp = x % zp;
         Polynomial<Zp,ZpElement> nonDeterminant = x % zp;
         DegreeList a;
-        int fdegree = f.degree(), totalDegree=0;
-        for(int deg=1;totalDegree<fdegree;++deg){
+        int gdegree = g.degree(), totalDegree=0;
+        for(int deg=1;totalDegree<gdegree;++deg){
             /// Distinct degree factorization
             /// x^p^deg mod g
             nonDeterminant = powerMod(nonDeterminant,p,g);
             a.push_back(0);
-            while(totalDegree<fdegree){
+            while(totalDegree<gdegree){
                 auto factor = gcd(nonDeterminant-xp,g);
                 //std::cout<<"gcd( "<<nonDeterminant-xp<<", "<<g<<" ) = "<<factor<<"\n";
                 g = g / factor;
@@ -319,6 +322,8 @@ std::map<DegreeList,int> SplitDegree(Polynomial<prime::IntType, int> const& f,in
                 a.back()+=partDegree/deg;
             }
         }
+		if(a.size()==0) a.push_back(0);
+		a[0] += f.degree() - gdegree;
         if(out.count(a)) out[a]+=1; else out[a] = 0;
     }
     int id = out[std::vector<int>{f.degree()}];
