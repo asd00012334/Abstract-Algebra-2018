@@ -25,13 +25,17 @@ Especially, `struct Polynomial` is defined as an template, with type arguement `
 
 ## Usage
 ### Build and Test
-- Run the testing script
+- Build
 ```shell
-sh test.sh
+make all
 ```
 - or Compile Directly
 ```shell
 g++ -std=c++11 main.cpp -o main
+```
+- Run test
+```shell
+make test
 ```
 
 ### Source
