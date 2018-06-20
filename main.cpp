@@ -415,7 +415,7 @@ int main(){
     fq.canonicalType.scalar = &quotient::fracType;
 
     cin>>fq;
-    fq = fq / gcd(fq.diff(),fq);
+    //fq = fq / gcd(fq.diff(),fq);
     fq.reduce();
     fint = fq.toIntCoef();
     std::cout << fint <<"\n";
