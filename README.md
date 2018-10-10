@@ -1,7 +1,7 @@
 # Abstract-Algebra-2018
 The final project of course Abstract Algebra in 2018.
 
-Check [this note](https://hackmd.io/pX2R_Oa5T6WuIxfn_KLlrA#) for more detail (in Mandarin).
+Check [this note](https://hackmd.io/s/ryvpRjYeX) for more detail (in Mandarin).
 
 Goal: to find Galois group of the splitting field of a quintic polynomial over Q.
 
